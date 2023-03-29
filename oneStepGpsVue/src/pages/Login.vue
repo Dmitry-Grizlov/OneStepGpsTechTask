@@ -23,7 +23,9 @@
 </template>
 
 <script>
+import config from "../../config/dev.env"
 import axios from "axios"
+
 export default {
     data() {
         return {
@@ -41,7 +43,7 @@ export default {
         async login() {
             let key = this.userInput;
             let data = { "apiKey": key };
-            let response = await axios.post("http://localhost:3000/login", data);
+            let response = await axios.post(config.API_HOST + "login", data);
             console.log(response);
             if (response.status == 200 && response.data.id > 0) {
                 localStorage.setItem("key", response.data.apiKey);

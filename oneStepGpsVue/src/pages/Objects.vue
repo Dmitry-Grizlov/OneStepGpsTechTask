@@ -44,16 +44,15 @@
 </template>
 
 <script>
+import config from '../../config/dev.env.js'
 import axios from 'axios'
 
 export default {
     data() {
         return {
             items: [],
-            points: [],
             hidden: true,
-            error: '',
-            googleApiKey: 'AIzaSyAPhJXKB6lW-phonNc98yzH-x1pJ6aOQso',
+            error: ''
         }
     },
 
@@ -89,7 +88,7 @@ export default {
 
         async getData() {
             let key = { apiKey: localStorage.getItem('key') };
-            let resp = await axios.post("http://localhost:3000/devices", key);
+            let resp = await axios.post(config.API_HOST + "devices", key);
             if (resp.data.length === 0) {
                 this.showError("Could not get data");
                 return;
@@ -105,7 +104,7 @@ export default {
         },
 
         async getAddressFrom(lat, long) {
-            let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${this.googleApiKey}`
+            let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${config.GOOGLE_API_KEY}`
             let response = await axios.get(url);
             if (response.data.error_message) {
                 this.showError(response.data.error_message);

@@ -27,7 +27,9 @@
 </template>
 
 <script>
+import config from '../../config/dev.env'
 import axios from 'axios'
+
 export default {
     data() {
         return {
@@ -44,7 +46,7 @@ export default {
     methods: {
         async getSettings() {
             let data = { id: localStorage.getItem('userId') };
-            let resp = await axios.post("http://localhost:3000/user", data);
+            let resp = await axios.post(config.API_HOST + "user", data);
             if (resp.data == null) {
                 this.showMessage("Could not get data");
                 return;
@@ -54,7 +56,7 @@ export default {
 
         async saveSettings() {
             let model = (this.model);
-            let resp = await axios.post("http://localhost:3000/updateUser", model);
+            let resp = await axios.post(config.API_HOST + "updateUser", model);
             console.log(resp);
             this.showMessage(resp.data.message);
         },
