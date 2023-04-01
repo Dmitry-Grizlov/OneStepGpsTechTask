@@ -6,6 +6,7 @@ import (
 	"oneStepGps/entities"
 	"oneStepGps/models"
 	"oneStepGps/services"
+	"oneStepGps/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,17 +42,16 @@ func UpdateUser(c *gin.Context) {
 
 	err := c.Bind(&data)
 	if err != nil {
-		log.Println(err.Error())
-		result = models.ApiResponseModel{Message: "Could not read data from the request body"}
+		result = utils.ErrorBadRequest(err)
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}
 
 	err = services.UpdateUser(data)
 	if err != nil {
-		log.Println(err.Error())
-		result.Message = "Could not update user"
+		result = utils.ErrorInternal(err, "Could not update user")
 		c.JSON(http.StatusInternalServerError, result)
+		return
 	}
 
 	c.JSON(http.StatusOK, result)

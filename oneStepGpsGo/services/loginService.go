@@ -2,44 +2,36 @@ package services
 
 import (
 	"errors"
-	"log"
 	"oneStepGps/entities"
 	"oneStepGps/initializers"
 	"oneStepGps/models"
+	"oneStepGps/utils"
 )
 
-func Login(apiKey string) (int, error) {
+func Login(apiKey string) (models.LoginModel, error) {
 	var user entities.User
+
 	db, err := initializers.CreateDbConnection()
 	if err != nil {
-		log.Println("Unexpected error occured while creating database connection.\n[ERROR] -", err.Error())
-		return -1, err
+		utils.ErrorCreateDbConnection(err)
+		return models.LoginModel{Id: -1}, err
 	}
 
 	db.Where(&entities.User{ApiKey: apiKey}).First(&user)
 
 	if user.ApiKey != "" {
-		return user.Id, nil
+		return models.LoginModel{Id: user.Id, ApiKey: apiKey}, nil
 	}
 
 	if len(pingServer(apiKey)) == 0 {
-		return -1, errors.New("key verification failed")
+		return models.LoginModel{Id: -1}, errors.New("key verification failed")
 	}
 
 	user = entities.User{ApiKey: apiKey}
 	result := db.Create(&user)
 	if result.Error != nil {
-		return -1, errors.New("Error creating object\n [ERROR] - " + result.Error.Error())
+		return models.LoginModel{Id: -1}, errors.New("Error creating object\n [ERROR] - " + result.Error.Error())
 	}
 
-	return user.Id, nil
-}
-
-func pingServer(apiKey string) []models.DeviceModel {
-	pingResult, err := GetDevices(apiKey)
-	if err != nil {
-		return []models.DeviceModel{}
-	}
-
-	return pingResult
+	return models.LoginModel{Id: user.Id, ApiKey: apiKey}, nil
 }

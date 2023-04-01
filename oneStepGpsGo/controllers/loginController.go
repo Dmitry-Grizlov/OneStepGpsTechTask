@@ -1,25 +1,31 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"oneStepGps/models"
 	"oneStepGps/services"
+	"oneStepGps/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Login(c *gin.Context) {
-	var data models.LoginModel
+	var data models.LoginFilterModel
+	var result models.ApiResponseModel
+
 	err := c.Bind(&data)
 	if err != nil {
-		log.Fatal("Could not read data from the request body.\n[ERROR] -", err)
+		result = utils.ErrorBadRequest(err)
+		c.JSON(http.StatusBadRequest, result)
+		return
 	}
 
-	res, err := services.Login(data.ApiKey)
+	result.Data, err = services.Login(data.ApiKey)
 	if err != nil {
-		c.JSON(http.StatusOK, err.Error())
+		result.Message = err.Error()
+		c.JSON(http.StatusInternalServerError, result)
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"apiKey": data.ApiKey, "id": res})
+	c.JSON(http.StatusOK, result)
 }

@@ -27,6 +27,15 @@ func GetDevices(key string) ([]models.DeviceModel, error) {
 	return response, nil
 }
 
+func pingServer(apiKey string) []models.DeviceModel {
+	pingResult, err := GetDevices(apiKey)
+	if err != nil {
+		return []models.DeviceModel{}
+	}
+
+	return pingResult
+}
+
 func sendRequest(method, url, key string, target interface{}) error {
 	url = os.Getenv("ONE_STEP_GPS_URL") + url + key
 

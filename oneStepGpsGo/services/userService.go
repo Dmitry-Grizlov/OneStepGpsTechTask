@@ -5,6 +5,7 @@ import (
 	"log"
 	"oneStepGps/entities"
 	"oneStepGps/initializers"
+	"oneStepGps/utils"
 )
 
 func GetProfileData(Id int) (entities.User, error) {
@@ -27,7 +28,7 @@ func UpdateUser(user entities.User) error {
 	var u entities.User
 	db, err := initializers.CreateDbConnection()
 	if err != nil {
-		log.Println("Unexpected error occured while creating database connection.\n[ERROR] -", err.Error())
+		utils.ErrorCreateDbConnection(err)
 		return err
 	}
 
@@ -38,6 +39,10 @@ func UpdateUser(user entities.User) error {
 
 	if u == user {
 		return nil
+	}
+
+	if u.ApiKey != user.ApiKey && len(pingServer(user.ApiKey)) == 0 {
+		return errors.New("new key is invalid")
 	}
 
 	u = user

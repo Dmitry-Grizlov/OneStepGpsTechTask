@@ -1,28 +1,28 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"oneStepGps/models"
 	"oneStepGps/services"
+	"oneStepGps/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func DevicesList(c *gin.Context) {
-	var data models.LoginModel
+	var data models.LoginFilterModel
 	var result models.ApiResponseModel
+
 	err := c.Bind(&data)
 	if err != nil {
-		log.Println(err.Error())
-		result = models.ApiResponseModel{Message: "Could not read data from the request body."}
+		result = utils.ErrorBadRequest(err)
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}
 
 	result.Data, err = services.GetDevices(data.ApiKey)
 	if err != nil {
-		result = models.ApiResponseModel{Message: "Could not get devices.\n[ERROR] - " + err.Error()}
+		result = utils.ErrorInternal(err, "Could not get devices.")
 		c.JSON(http.StatusInternalServerError, result)
 		return
 	}
