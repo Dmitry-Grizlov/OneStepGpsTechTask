@@ -9,30 +9,46 @@ import (
 	"os"
 )
 
-func GetDevices(key string) []models.DeviceModel {
+func GetDevices(key string) ([]models.DeviceModel, error) {
 	url := "/device-info?state_detail=1&api-key="
 	var response []models.DeviceModel
-	sendRequest("GET", url, key, &response)
+
+	err := sendRequest("GET", url, key, &response)
+	if err != nil {
+		log.Println("Error sending request.\n[ERROR] -", err.Error())
+		return response, err
+	}
+
 	for i := 0; i < len(response); i++ {
 		response[i].TrackerTime = utils.ParseTime(response[i].DtTracker)
 		response[i].StatusTime = utils.ParseTime(response[i].DriveStatusBeginTime)
 	}
-	return response
+
+	return response, nil
 }
 
-func sendRequest(method, url, key string, target interface{}) any {
+func sendRequest(method, url, key string, target interface{}) error {
 	url = os.Getenv("ONE_STEP_GPS_URL") + url + key
+
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		log.Println("Error creating request.\n[ERROR] -", err)
+		log.Println("Error creating request.\n[ERROR] -", err.Error())
+		return err
 	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error on response.\n[ERROR] -", err)
+		return err
 	}
 
 	defer resp.Body.Close()
-	return json.NewDecoder(resp.Body).Decode(target)
+	err = json.NewDecoder(resp.Body).Decode(target)
+	if err != nil {
+		log.Println("Error decoding response.\n[ERROR] -", err)
+		return err
+	}
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"oneStepGps/entities"
 	"oneStepGps/models"
@@ -11,24 +12,47 @@ import (
 
 func UserProfile(c *gin.Context) {
 	var data models.IdModel
+	var result models.ApiResponseModel
+
 	err := c.Bind(&data)
 	if err != nil {
-		c.JSON(http.StatusOK, "Could not read data from the request body.\n[ERROR] - "+err.Error())
+		result = models.ApiResponseModel{Message: "Could not read data from the request body"}
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, result)
+		return
 	}
-	result := services.GetProfileData(data.Id)
+
+	result.Data, err = services.GetProfileData(data.Id)
+	if err != nil {
+		if err != nil {
+			log.Println(err.Error())
+			result = models.ApiResponseModel{Message: "Could not get user data."}
+			c.JSON(http.StatusInternalServerError, result)
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, result)
 }
 
 func UpdateUser(c *gin.Context) {
 	var data entities.User
+	var result models.ApiResponseModel
+
 	err := c.Bind(&data)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "Could not read data from the request body", "success": false})
+		log.Println(err.Error())
+		result = models.ApiResponseModel{Message: "Could not read data from the request body"}
+		c.JSON(http.StatusBadRequest, result)
+		return
 	}
 
 	err = services.UpdateUser(data)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "Could not update data", "success": false})
+		log.Println(err.Error())
+		result.Message = "Could not update user"
+		c.JSON(http.StatusInternalServerError, result)
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully saved changed", "success": true})
+
+	c.JSON(http.StatusOK, result)
 }
