@@ -42,15 +42,13 @@ func UpdateUser(c *gin.Context) {
 
 	err := c.Bind(&data)
 	if err != nil {
-		result = utils.ErrorBadRequest(err)
-		c.JSON(http.StatusBadRequest, result)
+		c.JSON(http.StatusBadRequest, utils.ErrorBadRequest(err))
 		return
 	}
 
 	err = services.UpdateUser(data)
 	if err != nil {
-		result = utils.ErrorInternal(err, "Could not update user")
-		c.JSON(http.StatusInternalServerError, result)
+		c.JSON(http.StatusInternalServerError, utils.ErrorInternal(err, "Could not update user"))
 		return
 	}
 

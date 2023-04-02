@@ -15,15 +15,13 @@ func DevicesList(c *gin.Context) {
 
 	err := c.Bind(&data)
 	if err != nil {
-		result = utils.ErrorBadRequest(err)
-		c.JSON(http.StatusBadRequest, result)
+		c.JSON(http.StatusBadRequest, utils.ErrorBadRequest(err))
 		return
 	}
 
 	result.Data, err = services.GetDevices(data.ApiKey)
 	if err != nil {
-		result = utils.ErrorInternal(err, "Could not get devices.")
-		c.JSON(http.StatusInternalServerError, result)
+		c.JSON(http.StatusInternalServerError, utils.ErrorInternal(err, "Could not get devices."))
 		return
 	}
 

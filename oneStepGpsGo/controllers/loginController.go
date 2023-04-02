@@ -15,8 +15,7 @@ func Login(c *gin.Context) {
 
 	err := c.Bind(&data)
 	if err != nil {
-		result = utils.ErrorBadRequest(err)
-		c.JSON(http.StatusBadRequest, result)
+		c.JSON(http.StatusBadRequest, utils.ErrorBadRequest(err))
 		return
 	}
 
