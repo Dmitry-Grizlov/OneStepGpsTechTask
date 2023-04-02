@@ -8,8 +8,9 @@
                         <h2 class="fw-bold mb-5">Log in to OneStepGPS app</h2>
                         <form>
                             <div class="form-outline mb-4">
-                                <input type="text" class="form-control" id="form3Example3" v-model="userInput">
-                                <label class="form-label" for="form3Example3">API key</label>
+                                <input type="text" class="form-control" id="apiKey" v-model="userInput"
+                                    placeholder="API key">
+                                <div class="text-danger">{{ error }}</div>
                             </div>
                             <div class="btn btn-primary btn-block mb-4" @click="login">
                                 Log in
@@ -43,13 +44,15 @@ export default {
         async login() {
             let key = this.userInput;
             let data = { "apiKey": key };
-            let response = await axios.post(config.API_HOST + "login", data);
-            console.log(response);
-            if (response.status == 200 && response.data.id > 0) {
-                localStorage.setItem("key", response.data.apiKey);
-                localStorage.setItem("userId", response.data.id);
-                this.$router.push('/')
-            }
+            await axios.post(config.API_HOST + "login", data)
+                .then((response) => {
+                    localStorage.setItem("key", response.data.Data.apiKey);
+                    localStorage.setItem("userId", response.data.Data.id);
+                    this.$router.push('/')
+                })
+                .catch((error) => {
+                    this.error = error.response.data.Message;
+                })
         }
     }
 }

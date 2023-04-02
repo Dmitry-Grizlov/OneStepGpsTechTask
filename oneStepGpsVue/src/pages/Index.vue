@@ -1,22 +1,28 @@
 <template>
-    <section>
-        <div class="my-2 offset-1">
-            <GoBack v-if="this.$route.params.id != undefined" />
-        </div>
-        <div class="mx-4 alert alert-danger " role="alert" v-if="!hidden"> {{ error }}
-        </div>
-        <div id="map"></div>
-    </section>
+    <div>
+        <Header></Header>
+        <section>
+            <div class="my-2 offset-1">
+                <GoBack v-if="this.$route.params.id != undefined" />
+            </div>
+            <div class="mx-4 alert alert-danger " role="alert" v-if="!hidden">
+                {{ error }}
+            </div>
+            <div id="map"></div>
+        </section>
+    </div>
 </template>
 
 <script>
+import Header from "@/components/Header";
 import config from '../../config/dev.env.js'
 import GoBack from '@/components/GoBack'
-import axios from 'axios'
+import common from '../common'
 
 export default {
     components: {
-        GoBack
+        GoBack,
+        Header
     },
 
     props: {
@@ -36,6 +42,11 @@ export default {
     },
 
     async mounted() {
+        if (!common.isAuthorised()) {
+            this.$router.push('/login');
+            return;
+        }
+
         await this.getData();
         this.initMap();
         this.setDefaultCoords();
@@ -45,7 +56,6 @@ export default {
     methods: {
         initMap() {
             let id = this.$route.params.id;
-            console.log(id);
             if (id != undefined) {
                 let device = this.devices.find(x => x.device_id === id);
                 if (device != null) {
@@ -54,6 +64,7 @@ export default {
                     this.zoom = 18;
                 }
             }
+            
             this.map = new google.maps.Map(document.getElementById('map'), {
                 zoom: this.zoom,
                 center: new google.maps.LatLng(this.focus.lat, this.focus.lng)
@@ -61,13 +72,11 @@ export default {
         },
 
         async getData() {
-            let key = { apiKey: localStorage.getItem('key') };
-            let resp = await axios.post(config.API_HOST + "devices", key);
-            if (resp.data.length === 0) {
+            this.devices = await common.getDvices();
+            if (this.devices == null) {
                 this.showError("Could not get data");
                 return;
             }
-            this.devices = resp.data;
         },
 
         setDefaultCoords() {
@@ -131,7 +140,7 @@ export default {
                 address: ""
             };
 
-            object.address = await this.getAddressFrom(object.lat, object.lng);
+            object.address = await common.getAddressFrom(object.lat, object.lng);
             return object;
         },
 
@@ -158,16 +167,6 @@ export default {
                         </div>
                     </div>`;
 
-        },
-
-        async getAddressFrom(lat, long) {
-            let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${config.GOOGLE_API_KEY}`
-            let response = await axios.get(url);
-            if (response.data.error_message) {
-                this.showEror(response.data.error_message);
-            } else {
-                return response.data.results[0].formatted_address;
-            }
         },
 
         showError(data) {
